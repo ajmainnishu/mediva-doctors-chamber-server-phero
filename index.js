@@ -50,10 +50,33 @@ async function run() {
       const result = await doctorsCollection.insertOne(doc);
       res.send(result);
     })
+    // get specific email data
+    app.get('/doctorsPaid', async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email}
+      }
+      const cursor = await doctorsPaidCollection.find(query).toArray();
+      res.send(cursor);
+    })
     // post doctor pay data
     app.post('/doctorsPaid', async (req, res) => {
       const data = req.body;
       const result = await doctorsPaidCollection.insertOne(data);
+      res.send(result);
+    })
+    // update status
+    app.put('/doctorsPaid/:id', async (req, res) => {
+      const id = req.params.id;
+      const data = req.body.status;
+      const query = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          status: data
+        }
+      }
+      const result = await doctorsPaidCollection.updateOne(query, updateDoc, options);
       res.send(result);
     })
     await client.db("admin").command({ ping: 1 });
