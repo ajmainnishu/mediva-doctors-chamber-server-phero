@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000;
 app.use(cors())
@@ -22,9 +22,18 @@ async function run() {
   try {
     await client.connect();
     const doctorsCollection = client.db('usersDB').collection('doctors');
+    const doctorsPaidCollection = client.db('usersDB').collection('doctorsPaid');
     // doctors get data
     app.get('/doctors', async (req, res) => {
       const result = await doctorsCollection.find().toArray();
+      res.send(result);
+    })
+    // single doctor info get
+    app.get('/doctors/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await doctorsCollection.findOne(query);
+      // console.log(result)
       res.send(result);
     })
     // doctors post data
@@ -39,6 +48,12 @@ async function run() {
         expert: data.expert
       }
       const result = await doctorsCollection.insertOne(doc);
+      res.send(result);
+    })
+    // post doctor pay data
+    app.post('/doctorsPaid', async (req, res) => {
+      const data = req.body;
+      const result = await doctorsPaidCollection.insertOne(data);
       res.send(result);
     })
     await client.db("admin").command({ ping: 1 });
